@@ -114,7 +114,7 @@ for epoch in range(0,10):
     fake_data = gen(noise)
     for i in range(0,10):
     	save_name = './images/sample%depoch%d.jpg' %(i,epoch)
-    	image = fake_data[i,:,:,:].transpose(0,1).transpose(1,2).contiguous().cpu().numpy()
+    	image = fake_data[i,:,:,:].transpose(0,1).transpose(1,2).contiguous().cpu().detach().numpy()
     	misc.imsave(save_name,image)
         	
 		
