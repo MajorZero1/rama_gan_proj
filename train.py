@@ -83,7 +83,7 @@ count_csv = open(distribution_log,'w')
 csv_dist_writer = csv.writer(count_csv)
 
 
-for epoch in range(0,10):
+for epoch in range(0,14):
     print('training epoch %d' % epoch)
     for i, data in enumerate(train_loader, 0):
     	#train discriminator
@@ -124,8 +124,10 @@ for epoch in range(0,10):
     #after each epoch sample some images from the generator  
     noise = torch.randn(20, 100, 1, 1, device=device)
     fake_data = gen(noise)
+    out = lenet(fake_data)
+    unused,predicted = out.max(1)
     for i in range(0,20):
-    	save_name = './images/epoch%dsample%d.jpg' %(epoch,i)
+    	save_name = './images/epoch%dsample%dclass%d.jpg' %(epoch,i,predicted[i])
     	image = fake_data[i,:,:,:].squeeze().contiguous().cpu().detach().numpy()
     	misc.imsave(save_name,image)
     #generate some images and classify them with lenet to look at distribution	
