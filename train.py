@@ -5,10 +5,12 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from scipy import misc
 import csv
+from lenet import Net
 
 batch_size = 10
 device = 'cuda'
 train_log = './train_log.csv'
+distribution_log = './distribution_log.csv'
 
 #data loaders
 train_loader = torch.utils.data.DataLoader(
@@ -55,7 +57,11 @@ class Discriminator(nn.Module):
 
 	def forward(self, x):
 		return self.net(x)
-        
+
+#load lenet to analyze mode collapse
+lenet = Net().to(device)
+checkpoint = torch.load('./lenet.pth')
+lenet.load_state_dict(checkpoint['state_dict'])        
         
 gen = Generator()
 gen.to(device)
@@ -72,6 +78,10 @@ train_csv = open(train_log,'w')
 fieldnames = ['epoch','batch','loss_gen','loss_dis']
 csv_writer = csv.DictWriter(train_csv,fieldnames = fieldnames)
 csv_writer.writeheader()
+
+count_csv = open(distribution_log,'w')
+csv_dist_writer = csv.writer(count_csv)
+
 
 for epoch in range(0,10):
     print('training epoch %d' % epoch)
@@ -112,19 +122,24 @@ for epoch in range(0,10):
             print('epoch:%d \t loss_gen: %05f \t loss_dis: %05f \t' %(epoch,
                    loss_gen.item(), loss_dis.item()))
     #after each epoch sample some images from the generator  
-    noise = torch.randn(10, 100, 1, 1, device=device)
+    noise = torch.randn(20, 100, 1, 1, device=device)
     fake_data = gen(noise)
-    for i in range(0,10):
-    	save_name = './images/sample%depoch%d.jpg' %(i,epoch)
+    for i in range(0,20):
+    	save_name = './images/epoch%dsample%d.jpg' %(epoch,i)
     	image = fake_data[i,:,:,:].squeeze().contiguous().cpu().detach().numpy()
     	misc.imsave(save_name,image)
-        	
-		
+    #generate some images and classify them with lenet to look at distribution	
+    count = torch.zeros(10)
+    for i in range(0,100):
+        noise = torch.randn(10,100,1,1,device=device)
+        fake_data = gen(noise)
+        out = lenet(fake_data)
+        unused,predicted = out.max(1)
+        for j in range(0,len(predicted)):
+            count[predicted[j]] +=1
+    csv_dist_writer.writerow(count.detach().cpu().numpy())
+
+
 train_csv.close()
-
-
-
-
-
-
+csv_dist_writer.close()
 

@@ -9,8 +9,8 @@ import csv
 
 batch_size = 10
 test_batch_size = 10
-device = 'cpu'
-num_of_epochs = 10
+device = 'cuda'
+num_of_epochs = 10 
 
 #data loaders
 train_loader = torch.utils.data.DataLoader(
@@ -52,11 +52,11 @@ for epoch in range(1, num_of_epochs):
             correct_batch = predicted.eq(label.view_as(predicted)).sum().item()
             correct += correct_batch
             print('Test epoch: %d \t Iter: %d \t Correct: %d/%d' %
-               (epoch, batch_idx, test_batch_size))
+               (epoch, batch_idx, correct, test_batch_size))
         
         print('Test epoch: %d \t Num correct: %d / %d' % 
          (epoch, correct, len(test_loader)))
          
-torch.save({'state_dict': model.state_dict()},'./lenet.pth' % epoch)
+torch.save({'state_dict': model.state_dict()},'./lenet.pth')
         
         
